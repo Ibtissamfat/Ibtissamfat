@@ -39,6 +39,8 @@ const COUNTRY_ISO2: Record<string, string> = {
   sweden: "SE",
   norway: "NO",
   serbia: "RS",
+  "bosnia and herzegovina": "BA",
+  bosnia: "BA",
   wales: "GB-WLS",
   scotland: "GB-SCT",
   ukraine: "UA",

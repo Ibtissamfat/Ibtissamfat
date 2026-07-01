@@ -113,7 +113,7 @@ async function main() {
 
   if (!result) {
     result = { source: "demo", sourceName: null, fetchedAt: new Date().toISOString(), matches: [], errors };
-    console.log("No live source available; frontend will fall back to its bundled demo bracket.");
+    console.log("No live source available; frontend will fall back to its bundled snapshot bracket.");
   }
 
   const outDir = path.join(process.cwd(), "public", "data");

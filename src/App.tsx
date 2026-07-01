@@ -56,7 +56,7 @@ export default function App() {
           )}
 
           <footer className="app-footer">
-            Data via football-data.org (or TheSportsDB as backup), with a fun demo bracket as a last resort.
+            Data via football-data.org (or TheSportsDB as backup), falling back to a bundled snapshot of the real bracket.
           </footer>
         </div>
       </div>

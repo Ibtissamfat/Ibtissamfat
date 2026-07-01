@@ -1,111 +1,63 @@
 import type { Match, RoundKey } from "../types";
 
-const VENUES = [
-  "MetLife Stadium, New Jersey",
-  "Estadio Azteca, Mexico City",
-  "BC Place, Vancouver",
-  "AT&T Stadium, Dallas",
-  "SoFi Stadium, Los Angeles",
-  "Mercedes-Benz Stadium, Atlanta",
-  "Hard Rock Stadium, Miami",
-  "Lincoln Financial Field, Philadelphia",
-];
+// A static snapshot of the real FIFA World Cup 2026 knockout stage, captured on
+// 2026-07-01 from public results/schedule reporting. It is used only when the
+// live feed (football-data.org / TheSportsDB) is unavailable, so the app still
+// shows the actual bracket rather than invented data.
+//
+// Only the Round of 32 is included: eight ties have been played, eight are still
+// to come (no scores), and every later round is intentionally omitted so the
+// bracket renders them as undecided "?" slots — which is their real state today.
+//
+// Order matters: the app splits each round in half (first half -> left side,
+// second half -> right side) and pairs neighbours, so this ordering reproduces
+// the official matchups (Paraguay–France, Canada–Morocco, Brazil–Norway,
+// Mexico–England, ...). Kickoff times weren't reliably available, so dates are
+// stored date-only; venues are filled where known.
 
-type RawResult = [home: string, away: string, homeScore: number, awayScore: number];
-
-const R32: RawResult[] = [
-  ["Brazil", "Ghana", 3, 0],
-  ["Uruguay", "Iraq", 2, 1],
-  ["Netherlands", "Jordan", 4, 0],
-  ["Senegal", "Ecuador", 1, 0],
-  ["Argentina", "Panama", 2, 0],
-  ["Mexico", "Tunisia", 1, 0],
-  ["Portugal", "Iran", 2, 1],
-  ["Morocco", "Canada", 1, 0],
-  ["France", "Jamaica", 3, 0],
-  ["Poland", "Saudi Arabia", 1, 0],
-  ["England", "Nigeria", 2, 1],
-  ["Croatia", "Egypt", 1, 0],
-  ["Germany", "South Korea", 2, 1],
-  ["Japan", "Paraguay", 2, 0],
-  ["Spain", "Cape Verde", 3, 0],
-  ["Colombia", "Uzbekistan", 2, 0],
-];
-
-const R16: RawResult[] = [
-  ["Brazil", "Uruguay", 2, 0],
-  ["Netherlands", "Senegal", 3, 1],
-  ["Argentina", "Mexico", 2, 1],
-  ["Portugal", "Morocco", 1, 0],
-  ["France", "Poland", 3, 0],
-  ["England", "Croatia", 2, 1],
-  ["Germany", "Japan", 4, 2],
-  ["Spain", "Colombia", 3, 1],
-];
-
-const QF: RawResult[] = [
-  ["Brazil", "Netherlands", 2, 0],
-  ["Argentina", "Portugal", 1, 0],
-  ["France", "England", 2, 1],
-  ["Germany", "Spain", 3, 2],
-];
-
-const SF: RawResult[] = [
-  ["Brazil", "Argentina", 3, 1],
-  ["France", "Germany", 2, 1],
-];
-
-const THIRD: RawResult[] = [["Argentina", "Germany", 2, 0]];
-const FINAL: RawResult[] = [["Brazil", "France", 2, 1]];
-
-const ROUND_START_DATE: Record<RoundKey, string> = {
-  R32: "2026-06-30",
-  R16: "2026-07-04",
-  QF: "2026-07-09",
-  SF: "2026-07-14",
-  THIRD: "2026-07-18",
-  F: "2026-07-19",
-};
-
-const KICKOFF_HOURS_UTC = [15, 18, 21];
-
-let venueCounter = 0;
-function nextVenue(): string {
-  const v = VENUES[venueCounter % VENUES.length];
-  venueCounter += 1;
-  return v;
+interface RawMatch {
+  home: string;
+  away: string;
+  homeScore?: number;
+  awayScore?: number;
+  homePens?: number;
+  awayPens?: number;
+  date: string; // YYYY-MM-DD
+  venue?: string;
 }
 
-function kickoffDate(round: RoundKey, index: number): string {
-  const start = new Date(`${ROUND_START_DATE[round]}T00:00:00Z`);
-  const dayOffset = Math.floor(index / KICKOFF_HOURS_UTC.length);
-  const hour = KICKOFF_HOURS_UTC[index % KICKOFF_HOURS_UTC.length];
-  start.setUTCDate(start.getUTCDate() + dayOffset);
-  start.setUTCHours(hour, 0, 0, 0);
-  return start.toISOString();
-}
-
-function buildRound(round: RoundKey, results: RawResult[]): Match[] {
-  return results.map(([homeTeam, awayTeam, homeScore, awayScore], index) => ({
-    id: `demo-${round}-${index}`,
-    round,
-    homeTeam,
-    awayTeam,
-    homeScore,
-    awayScore,
-    date: kickoffDate(round, index),
-    venue: nextVenue(),
-  }));
-}
+const R32: RawMatch[] = [
+  // ----- Left side (top → bottom) -----
+  { home: "Germany", away: "Paraguay", homeScore: 1, awayScore: 1, homePens: 3, awayPens: 4, date: "2026-06-29" },
+  { home: "France", away: "Sweden", homeScore: 3, awayScore: 0, date: "2026-06-30" },
+  { home: "Canada", away: "South Africa", homeScore: 1, awayScore: 0, date: "2026-06-28" },
+  { home: "Netherlands", away: "Morocco", homeScore: 1, awayScore: 1, homePens: 2, awayPens: 3, date: "2026-06-30" },
+  { home: "Portugal", away: "Croatia", date: "2026-07-02", venue: "BMO Field, Toronto" },
+  { home: "Spain", away: "Austria", date: "2026-07-02", venue: "SoFi Stadium, Inglewood" },
+  { home: "USA", away: "Bosnia and Herzegovina", date: "2026-07-01", venue: "San Francisco Bay Area" },
+  { home: "Belgium", away: "Senegal", date: "2026-07-01", venue: "Seattle" },
+  // ----- Right side (top → bottom) -----
+  { home: "Brazil", away: "Japan", homeScore: 2, awayScore: 1, date: "2026-06-29" },
+  { home: "Norway", away: "Ivory Coast", homeScore: 2, awayScore: 1, date: "2026-06-30" },
+  { home: "Mexico", away: "Ecuador", homeScore: 2, awayScore: 0, date: "2026-07-01" },
+  { home: "England", away: "DR Congo", homeScore: 2, awayScore: 1, date: "2026-07-01" },
+  { home: "Argentina", away: "Cape Verde", date: "2026-07-03", venue: "Hard Rock Stadium, Miami Gardens" },
+  { home: "Australia", away: "Egypt", date: "2026-07-03", venue: "AT&T Stadium, Arlington" },
+  { home: "Switzerland", away: "Algeria", date: "2026-07-02", venue: "BC Place, Vancouver" },
+  { home: "Colombia", away: "Ghana", date: "2026-07-03", venue: "Arrowhead Stadium, Kansas City" },
+];
 
 export function buildFallbackBracket(): Match[] {
-  venueCounter = 0;
-  return [
-    ...buildRound("R32", R32),
-    ...buildRound("R16", R16),
-    ...buildRound("QF", QF),
-    ...buildRound("SF", SF),
-    ...buildRound("THIRD", THIRD),
-    ...buildRound("F", FINAL),
-  ];
+  return R32.map((m, i) => ({
+    id: `wc26-R32-${i}`,
+    round: "R32" as RoundKey,
+    homeTeam: m.home,
+    awayTeam: m.away,
+    homeScore: m.homeScore ?? null,
+    awayScore: m.awayScore ?? null,
+    homePens: m.homePens ?? null,
+    awayPens: m.awayPens ?? null,
+    date: m.date,
+    venue: m.venue ?? null,
+  }));
 }

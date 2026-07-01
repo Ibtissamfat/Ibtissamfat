@@ -13,7 +13,8 @@ interface Props {
 export function StatusBadge({ source, sourceName, fetchedAt, errors, loading, onRefresh }: Props) {
   const [showErrors, setShowErrors] = useState(false);
   const time = new Date(fetchedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  const label = source === "live" ? `Live data (${sourceName})` : "Demo data (live feed unavailable)";
+  const label =
+    source === "live" ? `Live data (${sourceName})` : "Offline snapshot · live feed unavailable";
 
   return (
     <div className="status-badge-wrap">
@@ -30,7 +31,7 @@ export function StatusBadge({ source, sourceName, fetchedAt, errors, loading, on
       {source === "demo" && errors.length > 0 && (
         <div className="status-errors">
           <button className="status-errors__toggle" onClick={() => setShowErrors((v) => !v)}>
-            {showErrors ? "Hide" : "Why demo data?"}
+            {showErrors ? "Hide" : "Why offline data?"}
           </button>
           {showErrors && (
             <ul className="status-errors__list">

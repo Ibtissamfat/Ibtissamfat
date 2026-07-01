@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Match } from "../types";
 import { flagForTeam } from "../utils/flags";
-import { getWinner } from "../utils/match";
+import { getWinner, wentToPenalties } from "../utils/match";
 import { formatMatchDateTime } from "../utils/date";
 import { ROUND_LABEL, ROUND_EMOJI } from "../utils/rounds";
 
@@ -59,6 +59,10 @@ export function MatchDetails({ match, onClose }: Props) {
               <TeamLine team={match.awayTeam} score={match.awayScore} won={getWinner(match) === "away"} />
             </div>
 
+            {wentToPenalties(match) && (
+              <p className="details__pens">{penaltyLine(match)}</p>
+            )}
+
             <dl className="details__meta">
               <div className="details__row">
                 <dt>🕒 Kickoff</dt>
@@ -78,6 +82,16 @@ export function MatchDetails({ match, onClose }: Props) {
 
 function isDecided(match: Match): boolean {
   return match.homeScore !== null && match.awayScore !== null;
+}
+
+function penaltyLine(match: Match): string {
+  const winner = getWinner(match);
+  const home = match.homePens ?? 0;
+  const away = match.awayPens ?? 0;
+  const hi = Math.max(home, away);
+  const lo = Math.min(home, away);
+  const name = winner === "home" ? match.homeTeam : winner === "away" ? match.awayTeam : null;
+  return name ? `${name} win ${hi}–${lo} on penalties` : `Decided on penalties (${home}–${away})`;
 }
 
 function TeamLine({ team, score, won }: { team: string; score: number | null; won: boolean }) {
