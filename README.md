@@ -11,6 +11,19 @@ the Final — built with React, TypeScript, Vite, and Framer Motion.
 - Animated "road" timeline connecting each round, with country flags, winner
   badges, and a confetti celebration when a champion is crowned.
 - Live/Demo status badge with a manual refresh button, and auto-refresh every 60s.
+- Installable as a Progressive Web App — add it to your phone's home screen
+  for a full-screen, app-like experience with an offline-capable service worker.
+
+## Install it on your phone
+
+There's no `.apk` — instead the app is a installable PWA, which works on both
+Android and iOS without any app-store build:
+
+1. Open the deployed/preview URL on your phone's browser (must be served over
+   HTTPS, or `localhost` for local testing).
+2. **Android (Chrome)**: tap the ⋮ menu → "Add to Home screen" / "Install app".
+3. **iOS (Safari)**: tap the Share icon → "Add to Home Screen".
+4. Launch it from the home screen icon — it opens full-screen, no browser chrome.
 
 ## Getting started
 
