@@ -1,0 +1,48 @@
+:root {
+  --pitch-dark: #04331f;
+  --pitch: #0b6e4f;
+  --pitch-light: #12a26b;
+  --gold: #ffd700;
+  --ink: #0b1220;
+  --paper: #f7fbf8;
+  --card: #ffffff;
+  --muted: #5c6b66;
+  --shadow: rgba(4, 51, 31, 0.18) 0 10px 30px -8px;
+
+  --sans: "Segoe UI", system-ui, Roboto, sans-serif;
+
+  color-scheme: light;
+  font: 16px/1.5 var(--sans);
+  color: var(--ink);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  background:
+    radial-gradient(circle at 20% -10%, rgba(255, 215, 0, 0.12), transparent 45%),
+    linear-gradient(180deg, var(--pitch-dark) 0%, var(--pitch) 45%, var(--paper) 45%, var(--paper) 100%);
+  background-attachment: fixed;
+}
+
+h1, h2 {
+  font-weight: 700;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
