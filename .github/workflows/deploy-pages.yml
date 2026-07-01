@@ -9,8 +9,9 @@ on:
   schedule:
     # Refresh knockout results periodically. Only fires once this workflow
     # file lives on the repo's default branch - GitHub ignores schedule
-    # triggers defined on other branches.
-    - cron: "*/30 * * * *"
+    # triggers defined on other branches. 5 min is about the fastest GitHub
+    # honours for scheduled runs (and they can still be delayed under load).
+    - cron: "*/5 * * * *"
 
 permissions:
   contents: read

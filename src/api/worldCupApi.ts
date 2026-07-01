@@ -9,7 +9,9 @@ const DATA_URL = `${import.meta.env.BASE_URL}data/worldcup.json`;
 
 export async function loadWorldCupData(): Promise<WorldCupData> {
   try {
-    const res = await fetch(DATA_URL, { cache: "no-store" });
+    // Cache-bust with a unique query string so a CDN/browser/service worker can
+    // never hand back a stale copy of the periodically-regenerated JSON.
+    const res = await fetch(`${DATA_URL}?t=${Date.now()}`, { cache: "no-store" });
     if (!res.ok) throw new Error(`Failed to load ${DATA_URL} (${res.status})`);
     const data: WorldCupData = await res.json();
 
