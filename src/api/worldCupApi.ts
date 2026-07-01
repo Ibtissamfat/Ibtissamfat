@@ -65,12 +65,14 @@ const LIVE_SOURCES: { name: string; fetch: () => Promise<Match[]> }[] = [
 ];
 
 export async function loadWorldCupData(): Promise<WorldCupData> {
+  const errors: { source: string; message: string }[] = [];
+
   for (const source of LIVE_SOURCES) {
     try {
       const matches = await source.fetch();
-      return { source: "live", sourceName: source.name, fetchedAt: new Date().toISOString(), matches };
-    } catch {
-      continue;
+      return { source: "live", sourceName: source.name, fetchedAt: new Date().toISOString(), matches, errors };
+    } catch (err) {
+      errors.push({ source: source.name, message: err instanceof Error ? err.message : String(err) });
     }
   }
 
@@ -79,5 +81,6 @@ export async function loadWorldCupData(): Promise<WorldCupData> {
     sourceName: null,
     fetchedAt: new Date().toISOString(),
     matches: buildFallbackBracket(),
+    errors,
   };
 }

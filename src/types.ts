@@ -13,9 +13,15 @@ export interface Match {
 
 export type DataSource = "live" | "demo";
 
+export interface SourceError {
+  source: string;
+  message: string;
+}
+
 export interface WorldCupData {
   source: DataSource;
   sourceName: string | null;
   fetchedAt: string;
   matches: Match[];
+  errors: SourceError[];
 }

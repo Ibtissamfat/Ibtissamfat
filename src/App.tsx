@@ -35,6 +35,7 @@ export default function App() {
           source={data.source}
           sourceName={data.sourceName}
           fetchedAt={data.fetchedAt}
+          errors={data.errors}
           loading={loading}
           onRefresh={refresh}
         />
