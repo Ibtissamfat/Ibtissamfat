@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { Match, RoundKey } from "../types";
 import { BracketTile } from "./BracketTile";
+import { MatchDetails } from "./MatchDetails";
 import { getWinner } from "../utils/match";
 import { flagForTeam } from "../utils/flags";
 import { useChampionConfetti } from "../hooks/useChampionConfetti";
@@ -47,6 +48,8 @@ export function Bracket({ matches }: Props) {
     return { left, right };
   }, [byRound]);
 
+  const [selected, setSelected] = useState<Match | null>(null);
+
   const finalMatch = byRound.get("F")?.[0];
   const thirdMatch = byRound.get("THIRD")?.[0];
 
@@ -72,7 +75,7 @@ export function Bracket({ matches }: Props) {
       <div className="bracket">
         <div className="bracket__side bracket__side--left">
           {LEFT_ROUNDS.map((round) => (
-            <Column key={`l-${round}`} side="left" tiles={sides.left[round]} />
+            <Column key={`l-${round}`} side="left" tiles={sides.left[round]} onSelect={setSelected} />
           ))}
         </div>
 
@@ -89,13 +92,13 @@ export function Bracket({ matches }: Props) {
           </div>
 
           <div className="center-mid">
-            <BracketTile match={finalMatch} />
+            <BracketTile match={finalMatch} onSelect={setSelected} />
           </div>
 
           <div className="center-bot">
             <div className="bronze">
               <p className="bronze__label">BRONZE FINAL</p>
-              <BracketTile match={thirdMatch} />
+              <BracketTile match={thirdMatch} onSelect={setSelected} />
             </div>
             <div className="trophy">
               <span className="trophy__cup" role="img" aria-label="World Cup trophy">🏆</span>
@@ -108,20 +111,30 @@ export function Bracket({ matches }: Props) {
 
         <div className="bracket__side bracket__side--right">
           {RIGHT_ROUNDS.map((round) => (
-            <Column key={`r-${round}`} side="right" tiles={sides.right[round]} />
+            <Column key={`r-${round}`} side="right" tiles={sides.right[round]} onSelect={setSelected} />
           ))}
         </div>
       </div>
+
+      <MatchDetails match={selected} onClose={() => setSelected(null)} />
     </div>
   );
 }
 
-function Column({ side, tiles }: { side: "left" | "right"; tiles: (Match | undefined)[] }) {
+function Column({
+  side,
+  tiles,
+  onSelect,
+}: {
+  side: "left" | "right";
+  tiles: (Match | undefined)[];
+  onSelect: (match: Match) => void;
+}) {
   return (
     <div className={`round round--${side}`}>
       {tiles.map((match, i) => (
         <div className="seed" key={match?.id ?? `slot-${i}`}>
-          <BracketTile match={match} delay={i * 0.04} />
+          <BracketTile match={match} delay={i * 0.04} onSelect={onSelect} />
         </div>
       ))}
     </div>
