@@ -20,13 +20,7 @@ export const ROUND_EMOJI: Record<RoundKey, string> = {
   F: "🏆",
 };
 
-export function normalizeRound(raw: string): RoundKey | null {
-  const s = raw.trim().toLowerCase().replace(/_/g, " ");
-  if (/round of 32|last 32/.test(s)) return "R32";
-  if (/round of 16|last 16/.test(s)) return "R16";
-  if (/quarter/.test(s)) return "QF";
-  if (/semi/.test(s)) return "SF";
-  if (/3rd|third/.test(s)) return "THIRD";
-  if (/final/.test(s)) return "F";
-  return null;
-}
+// Note: mapping raw provider stage names (e.g. "QUARTER_FINALS") onto RoundKey
+// happens server-side in scripts/fetch-matches.mjs, which is the single source
+// of that rule. The app only ever reads the already-normalized JSON, so it
+// deliberately doesn't carry its own normalizer.

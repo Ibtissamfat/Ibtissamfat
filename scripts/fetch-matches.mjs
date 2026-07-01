@@ -17,6 +17,15 @@ function normalizeRound(raw) {
   return null;
 }
 
+// Map each provider's raw rows into our Match shape, dropping anything that
+// isn't a recognizable knockout round. Throws a source-specific diagnostic when
+// nothing usable is found, so the frontend's "Why demo data?" can explain why.
+function collectKnockoutMatches(rawRows, mapRow, describeEmpty) {
+  const matches = rawRows.map(mapRow).filter(Boolean);
+  if (matches.length === 0) throw new Error(describeEmpty(rawRows));
+  return matches;
+}
+
 async function fetchFootballData() {
   const apiKey = process.env.FOOTBALL_DATA_API_KEY;
   if (!apiKey) throw new Error("FOOTBALL_DATA_API_KEY is not set");
@@ -28,8 +37,9 @@ async function fetchFootballData() {
 
   const data = await res.json();
   const rawMatches = Array.isArray(data?.matches) ? data.matches : [];
-  const matches = rawMatches
-    .map((m) => {
+  return collectKnockoutMatches(
+    rawMatches,
+    (m) => {
       const round = normalizeRound(m.stage);
       if (!round) return null;
       return {
@@ -42,14 +52,12 @@ async function fetchFootballData() {
         date: m.utcDate ?? null,
         venue: m.venue ?? null,
       };
-    })
-    .filter(Boolean);
-
-  if (matches.length === 0) {
-    const stages = [...new Set(rawMatches.map((m) => m.stage))];
-    throw new Error(`No knockout-stage matches yet. Raw stages seen: ${stages.join(", ") || "none"}`);
-  }
-  return matches;
+    },
+    (rows) => {
+      const stages = [...new Set(rows.map((m) => m.stage))];
+      return `No knockout-stage matches yet. Raw stages seen: ${stages.join(", ") || "none"}`;
+    },
+  );
 }
 
 async function fetchTheSportsDb() {
@@ -58,8 +66,9 @@ async function fetchTheSportsDb() {
 
   const data = await res.json();
   const events = Array.isArray(data?.events) ? data.events : [];
-  const matches = events
-    .map((e) => {
+  return collectKnockoutMatches(
+    events,
+    (e) => {
       const round = normalizeRound(e.strRound);
       if (!round) return null;
       return {
@@ -72,16 +81,12 @@ async function fetchTheSportsDb() {
         date: e.dateEvent ?? null,
         venue: e.strVenue ?? null,
       };
-    })
-    .filter(Boolean);
-
-  if (matches.length === 0) {
-    const rounds = [...new Set(events.map((e) => e.strRound))];
-    throw new Error(
-      `No knockout-stage matches yet (${events.length} total events). Raw rounds seen: ${rounds.join(", ") || "none"}`,
-    );
-  }
-  return matches;
+    },
+    (rows) => {
+      const rounds = [...new Set(rows.map((e) => e.strRound))];
+      return `No knockout-stage matches yet (${rows.length} total events). Raw rounds seen: ${rounds.join(", ") || "none"}`;
+    },
+  );
 }
 
 const SOURCES = [
