@@ -1,4 +1,4 @@
-import type { Match, RoundKey } from "../types";
+import type { Match, RoundKey, Goal } from "../types";
 
 const VENUES = [
   "MetLife Stadium, New Jersey",
@@ -10,6 +10,43 @@ const VENUES = [
   "Hard Rock Stadium, Miami",
   "Lincoln Financial Field, Philadelphia",
 ];
+
+// Illustrative scorer names per nation, used to synthesise goal timelines for the
+// demo bracket (this is fictional fallback data — see buildFallbackBracket).
+const SCORERS: Record<string, string[]> = {
+  Brazil: ["Vinícius Jr.", "Rodrygo", "Raphinha"],
+  Ghana: ["Kudus", "J. Ayew", "Semenyo"],
+  Uruguay: ["Núñez", "Valverde", "Pellistri"],
+  Iraq: ["Aymen Hussein", "Al-Hamadi"],
+  Netherlands: ["Gakpo", "Depay", "Simons"],
+  Jordan: ["Al-Naimat", "Al-Tamari"],
+  Senegal: ["I. Sarr", "Dia", "N. Jackson"],
+  Ecuador: ["E. Valencia", "Plata", "Páez"],
+  Argentina: ["Messi", "J. Álvarez", "L. Martínez"],
+  Panama: ["Fajardo", "Carrasquilla"],
+  Mexico: ["R. Jiménez", "Lozano", "H. Sánchez"],
+  Tunisia: ["Msakni", "Khazri"],
+  Portugal: ["Ronaldo", "B. Fernandes", "L. Félix"],
+  Iran: ["Taremi", "Azmoun"],
+  Morocco: ["En-Nesyri", "Hakimi", "Ziyech"],
+  Canada: ["J. David", "A. Davies", "Larin"],
+  France: ["Mbappé", "Griezmann", "Dembélé"],
+  Jamaica: ["L. Bailey", "Antonio"],
+  Poland: ["Lewandowski", "Zieliński"],
+  "Saudi Arabia": ["Al-Dawsari", "Al-Shehri"],
+  England: ["Kane", "Bellingham", "Saka"],
+  Nigeria: ["Osimhen", "Lookman"],
+  Croatia: ["Kramarić", "Modrić", "Perišić"],
+  Egypt: ["Salah", "Marmoush"],
+  Germany: ["Musiala", "Havertz", "Wirtz"],
+  "South Korea": ["Son", "Hwang H-C.", "Lee K-I."],
+  Japan: ["Mitoma", "Kubo", "Kamada"],
+  Paraguay: ["Almirón", "Sanabria"],
+  Spain: ["L. Yamal", "Morata", "D. Olmo"],
+  "Cape Verde": ["Bebé", "Djaniny"],
+  Colombia: ["L. Díaz", "J. Rodríguez", "Borré"],
+  Uzbekistan: ["Shomurodov", "Ashurmatov"],
+};
 
 type RawResult = [home: string, away: string, homeScore: number, awayScore: number];
 
@@ -85,21 +122,53 @@ function kickoffDate(round: RoundKey, index: number): string {
   return start.toISOString();
 }
 
+// Build a plausible, chronologically-sorted goal timeline that matches the score.
+// Deterministic (seeded by match index) so the demo looks the same on every load.
+function buildGoals(
+  home: string,
+  away: string,
+  homeScore: number,
+  awayScore: number,
+  seed: number,
+): Goal[] {
+  const goals: Goal[] = [];
+  const add = (team: "home" | "away", teamName: string, count: number, offset: number) => {
+    const roster = SCORERS[teamName] ?? [teamName];
+    for (let i = 0; i < count; i++) {
+      goals.push({
+        team,
+        scorer: roster[(seed + i) % roster.length],
+        minute: ((seed * 13 + i * 29 + offset) % 87) + 3,
+      });
+    }
+  };
+  add("home", home, homeScore, 7);
+  add("away", away, awayScore, 41);
+  return goals.sort((a, b) => (a.minute ?? 0) - (b.minute ?? 0));
+}
+
+let goalSeed = 0;
+
 function buildRound(round: RoundKey, results: RawResult[]): Match[] {
-  return results.map(([homeTeam, awayTeam, homeScore, awayScore], index) => ({
-    id: `demo-${round}-${index}`,
-    round,
-    homeTeam,
-    awayTeam,
-    homeScore,
-    awayScore,
-    date: kickoffDate(round, index),
-    venue: nextVenue(),
-  }));
+  return results.map(([homeTeam, awayTeam, homeScore, awayScore], index) => {
+    goalSeed += 1;
+    return {
+      id: `demo-${round}-${index}`,
+      round,
+      homeTeam,
+      awayTeam,
+      homeScore,
+      awayScore,
+      date: kickoffDate(round, index),
+      venue: nextVenue(),
+      goals: buildGoals(homeTeam, awayTeam, homeScore, awayScore, goalSeed),
+    };
+  });
 }
 
 export function buildFallbackBracket(): Match[] {
   venueCounter = 0;
+  goalSeed = 0;
   return [
     ...buildRound("R32", R32),
     ...buildRound("R16", R16),

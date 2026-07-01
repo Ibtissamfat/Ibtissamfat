@@ -7,21 +7,37 @@ import { formatMatchDateTime } from "../utils/date";
 interface Props {
   match: Match;
   delay?: number;
+  onSelect?: (match: Match) => void;
 }
 
-export function MatchCard({ match, delay = 0 }: Props) {
+export function MatchCard({ match, delay = 0, onSelect }: Props) {
   const winner = getWinner(match);
   const played = isPlayed(match);
   const kickoff = formatMatchDateTime(match.date);
+  const clickable = Boolean(onSelect);
 
   return (
     <motion.div
-      className="match-card"
+      className={`match-card${clickable ? " match-card--clickable" : ""}`}
       initial={{ opacity: 0, y: 24, scale: 0.92 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.4, delay, type: "spring", stiffness: 140 }}
       whileHover={{ scale: 1.04, rotate: -0.5 }}
+      onClick={onSelect ? () => onSelect(match) : undefined}
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      aria-label={clickable ? `View details: ${match.homeTeam} vs ${match.awayTeam}` : undefined}
+      onKeyDown={
+        onSelect
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelect(match);
+              }
+            }
+          : undefined
+      }
     >
       <TeamRow
         team={match.homeTeam}
@@ -49,6 +65,9 @@ export function MatchCard({ match, delay = 0 }: Props) {
           {match.venue && <span>📍 {match.venue}</span>}
           {played && kickoff && <span>🕒 {kickoff}</span>}
         </div>
+      )}
+      {clickable && (
+        <div className="match-card__more">{played ? "Goals & details" : "Match details"} ›</div>
       )}
     </motion.div>
   );

@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { Match, RoundKey } from "../types";
 import { ROUND_ORDER } from "../utils/rounds";
 import { RoundSection } from "./RoundSection";
 import { ChampionBanner } from "./ChampionBanner";
+import { MatchDetails } from "./MatchDetails";
 import { useChampionConfetti } from "../hooks/useChampionConfetti";
 
 interface Props {
@@ -18,6 +19,8 @@ export function RoadToFinal({ matches }: Props) {
     }
     return map;
   }, [matches]);
+
+  const [selected, setSelected] = useState<Match | null>(null);
 
   const orderedRounds = ROUND_ORDER.filter((r) => grouped.has(r));
   const finalMatch = grouped.get("F")?.[0];
@@ -42,8 +45,10 @@ export function RoadToFinal({ matches }: Props) {
           matches={grouped.get(round) ?? []}
           stepNumber={i + 1}
           totalSteps={orderedRounds.length}
+          onSelect={setSelected}
         />
       ))}
+      <MatchDetails match={selected} onClose={() => setSelected(null)} />
     </div>
   );
 }

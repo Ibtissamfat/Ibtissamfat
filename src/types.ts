@@ -1,5 +1,13 @@
 export type RoundKey = "R32" | "R16" | "QF" | "SF" | "THIRD" | "F";
 
+export interface Goal {
+  team: "home" | "away";
+  scorer: string;
+  minute: number | null;
+  penalty?: boolean;
+  ownGoal?: boolean;
+}
+
 export interface Match {
   id: string;
   round: RoundKey;
@@ -9,6 +17,7 @@ export interface Match {
   awayScore: number | null;
   date: string | null;
   venue: string | null;
+  goals?: Goal[];
 }
 
 export type DataSource = "live" | "demo";

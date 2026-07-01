@@ -8,9 +8,10 @@ interface Props {
   matches: Match[];
   stepNumber: number;
   totalSteps: number;
+  onSelect: (match: Match) => void;
 }
 
-export function RoundSection({ round, matches, stepNumber, totalSteps }: Props) {
+export function RoundSection({ round, matches, stepNumber, totalSteps, onSelect }: Props) {
   return (
     <div className="round-section">
       <div className="round-section__spine">
@@ -38,7 +39,7 @@ export function RoundSection({ round, matches, stepNumber, totalSteps }: Props) 
         </motion.h2>
         <div className="round-section__grid">
           {matches.map((m, i) => (
-            <MatchCard key={m.id} match={m} delay={i * 0.06} />
+            <MatchCard key={m.id} match={m} delay={i * 0.06} onSelect={onSelect} />
           ))}
         </div>
       </div>

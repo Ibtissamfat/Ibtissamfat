@@ -17,6 +17,20 @@ function normalizeRound(raw) {
   return null;
 }
 
+// Map football-data.org's goal list into our Goal shape, if present. The free
+// tier doesn't always include goals; return undefined when there's nothing.
+function mapGoals(goals, homeTeamName) {
+  if (!Array.isArray(goals) || goals.length === 0) return undefined;
+  const mapped = goals.map((g) => ({
+    team: g.team?.name === homeTeamName ? "home" : "away",
+    scorer: g.scorer?.name ?? "Unknown",
+    minute: g.minute ?? null,
+    penalty: g.type === "PENALTY" || undefined,
+    ownGoal: g.type === "OWN" || undefined,
+  }));
+  return mapped.length > 0 ? mapped : undefined;
+}
+
 async function fetchFootballData() {
   const apiKey = process.env.FOOTBALL_DATA_API_KEY;
   if (!apiKey) throw new Error("FOOTBALL_DATA_API_KEY is not set");
@@ -32,15 +46,17 @@ async function fetchFootballData() {
     .map((m) => {
       const round = normalizeRound(m.stage);
       if (!round) return null;
+      const homeName = m.homeTeam?.name ?? "TBD";
       return {
         id: `fd-${m.id}`,
         round,
-        homeTeam: m.homeTeam?.name ?? "TBD",
+        homeTeam: homeName,
         awayTeam: m.awayTeam?.name ?? "TBD",
         homeScore: m.score?.fullTime?.home ?? null,
         awayScore: m.score?.fullTime?.away ?? null,
         date: m.utcDate ?? null,
         venue: m.venue ?? null,
+        goals: mapGoals(m.goals, homeName),
       };
     })
     .filter(Boolean);
