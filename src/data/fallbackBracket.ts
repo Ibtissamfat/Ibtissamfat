@@ -58,11 +58,31 @@ const SF: RawResult[] = [
 const THIRD: RawResult[] = [["Argentina", "Germany", 2, 0]];
 const FINAL: RawResult[] = [["Brazil", "France", 2, 1]];
 
+const ROUND_START_DATE: Record<RoundKey, string> = {
+  R32: "2026-06-30",
+  R16: "2026-07-04",
+  QF: "2026-07-09",
+  SF: "2026-07-14",
+  THIRD: "2026-07-18",
+  F: "2026-07-19",
+};
+
+const KICKOFF_HOURS_UTC = [15, 18, 21];
+
 let venueCounter = 0;
 function nextVenue(): string {
   const v = VENUES[venueCounter % VENUES.length];
   venueCounter += 1;
   return v;
+}
+
+function kickoffDate(round: RoundKey, index: number): string {
+  const start = new Date(`${ROUND_START_DATE[round]}T00:00:00Z`);
+  const dayOffset = Math.floor(index / KICKOFF_HOURS_UTC.length);
+  const hour = KICKOFF_HOURS_UTC[index % KICKOFF_HOURS_UTC.length];
+  start.setUTCDate(start.getUTCDate() + dayOffset);
+  start.setUTCHours(hour, 0, 0, 0);
+  return start.toISOString();
 }
 
 function buildRound(round: RoundKey, results: RawResult[]): Match[] {
@@ -73,7 +93,7 @@ function buildRound(round: RoundKey, results: RawResult[]): Match[] {
     awayTeam,
     homeScore,
     awayScore,
-    date: "2026-07-XX",
+    date: kickoffDate(round, index),
     venue: nextVenue(),
   }));
 }

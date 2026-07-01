@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import type { Match } from "../types";
 import { flagForTeam } from "../utils/flags";
 import { getWinner, isPlayed } from "../utils/match";
+import { formatMatchDateTime } from "../utils/date";
 
 interface Props {
   match: Match;
@@ -11,6 +12,7 @@ interface Props {
 export function MatchCard({ match, delay = 0 }: Props) {
   const winner = getWinner(match);
   const played = isPlayed(match);
+  const kickoff = formatMatchDateTime(match.date);
 
   return (
     <motion.div
@@ -28,7 +30,13 @@ export function MatchCard({ match, delay = 0 }: Props) {
         played={played}
       />
       <div className="match-card__vs">
-        {played ? <span className="match-card__ft">FT</span> : <span className="match-card__vs-label">VS</span>}
+        {played ? (
+          <span className="match-card__ft">FT</span>
+        ) : kickoff ? (
+          <span className="match-card__kickoff">🕒 {kickoff}</span>
+        ) : (
+          <span className="match-card__vs-label">VS</span>
+        )}
       </div>
       <TeamRow
         team={match.awayTeam}
@@ -36,7 +44,12 @@ export function MatchCard({ match, delay = 0 }: Props) {
         isWinner={winner === "away"}
         played={played}
       />
-      {match.venue && <div className="match-card__venue">📍 {match.venue}</div>}
+      {(match.venue || (played && kickoff)) && (
+        <div className="match-card__meta">
+          {match.venue && <span>📍 {match.venue}</span>}
+          {played && kickoff && <span>🕒 {kickoff}</span>}
+        </div>
+      )}
     </motion.div>
   );
 }

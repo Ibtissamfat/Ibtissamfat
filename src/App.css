@@ -222,10 +222,24 @@
   color: var(--pitch);
 }
 
-.match-card__venue {
+.match-card__kickoff {
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--pitch);
+  background: rgba(18, 162, 107, 0.1);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+.match-card__meta {
   margin-top: 8px;
   font-size: 11px;
   color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .team-row {
