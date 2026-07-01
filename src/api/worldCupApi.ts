@@ -1,6 +1,7 @@
 import type { Match, WorldCupData } from "../types";
 import { normalizeRound } from "../utils/rounds";
 import { buildFallbackBracket } from "../data/fallbackBracket";
+import { fetchFootballDataMatches } from "./footballDataApi";
 
 const FIFA_WORLD_CUP_LEAGUE_ID = "4429";
 const SEASON = "2026";
@@ -32,7 +33,7 @@ function transformEvent(e: RawEvent): Match | null {
   };
 }
 
-async function fetchLiveMatches(): Promise<Match[]> {
+async function fetchTheSportsDbMatches(): Promise<Match[]> {
   const url = `${API_BASE}/eventsseason.php?id=${FIFA_WORLD_CUP_LEAGUE_ID}&s=${SEASON}`;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
@@ -55,15 +56,28 @@ async function fetchLiveMatches(): Promise<Match[]> {
   }
 }
 
+// Tried in order: an accurate but key-gated source first, then a keyless
+// fallback that's historically been unreliable for this data, then the
+// bundled demo bracket so the app always has something to show.
+const LIVE_SOURCES: { name: string; fetch: () => Promise<Match[]> }[] = [
+  { name: "football-data.org", fetch: fetchFootballDataMatches },
+  { name: "TheSportsDB", fetch: fetchTheSportsDbMatches },
+];
+
 export async function loadWorldCupData(): Promise<WorldCupData> {
-  try {
-    const matches = await fetchLiveMatches();
-    return { source: "live", fetchedAt: new Date().toISOString(), matches };
-  } catch {
-    return {
-      source: "demo",
-      fetchedAt: new Date().toISOString(),
-      matches: buildFallbackBracket(),
-    };
+  for (const source of LIVE_SOURCES) {
+    try {
+      const matches = await source.fetch();
+      return { source: "live", sourceName: source.name, fetchedAt: new Date().toISOString(), matches };
+    } catch {
+      continue;
+    }
   }
+
+  return {
+    source: "demo",
+    sourceName: null,
+    fetchedAt: new Date().toISOString(),
+    matches: buildFallbackBracket(),
+  };
 }

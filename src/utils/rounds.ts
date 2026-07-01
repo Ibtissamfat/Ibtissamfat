@@ -21,9 +21,9 @@ export const ROUND_EMOJI: Record<RoundKey, string> = {
 };
 
 export function normalizeRound(raw: string): RoundKey | null {
-  const s = raw.trim().toLowerCase();
-  if (/round of 32/.test(s)) return "R32";
-  if (/round of 16/.test(s)) return "R16";
+  const s = raw.trim().toLowerCase().replace(/_/g, " ");
+  if (/round of 32|last 32/.test(s)) return "R32";
+  if (/round of 16|last 16/.test(s)) return "R16";
   if (/quarter/.test(s)) return "QF";
   if (/semi/.test(s)) return "SF";
   if (/3rd|third/.test(s)) return "THIRD";

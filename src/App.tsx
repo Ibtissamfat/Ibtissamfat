@@ -31,7 +31,13 @@ export default function App() {
       <Header />
 
       {data && (
-        <StatusBadge source={data.source} fetchedAt={data.fetchedAt} loading={loading} onRefresh={refresh} />
+        <StatusBadge
+          source={data.source}
+          sourceName={data.sourceName}
+          fetchedAt={data.fetchedAt}
+          loading={loading}
+          onRefresh={refresh}
+        />
       )}
 
       {!data ? (
@@ -47,7 +53,7 @@ export default function App() {
       )}
 
       <footer className="app-footer">
-        Data via TheSportsDB, with a fun demo bracket as backup when live data isn't available.
+        Data via football-data.org (or TheSportsDB as backup), with a fun demo bracket as a last resort.
       </footer>
     </div>
   );

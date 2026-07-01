@@ -15,6 +15,7 @@ export type DataSource = "live" | "demo";
 
 export interface WorldCupData {
   source: DataSource;
+  sourceName: string | null;
   fetchedAt: string;
   matches: Match[];
 }
