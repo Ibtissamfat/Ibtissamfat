@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Header } from "./components/Header";
 import { StatusBadge } from "./components/StatusBadge";
-import { Bracket } from "./components/Bracket";
+import { RoadToFinal } from "./components/RoadToFinal";
 import { loadWorldCupData } from "./api/worldCupApi";
 import type { WorldCupData } from "./types";
 import "./App.css";
@@ -27,39 +27,35 @@ export default function App() {
   }, [refresh]);
 
   return (
-    <div className="poster-frame">
-      <div className="poster">
-        <div className="app-shell">
-          <Header />
+    <div className="app-shell">
+      <Header />
 
-          {data && (
-            <StatusBadge
-              source={data.source}
-              sourceName={data.sourceName}
-              fetchedAt={data.fetchedAt}
-              errors={data.errors}
-              loading={loading}
-              onRefresh={refresh}
-            />
-          )}
+      {data && (
+        <StatusBadge
+          source={data.source}
+          sourceName={data.sourceName}
+          fetchedAt={data.fetchedAt}
+          errors={data.errors}
+          loading={loading}
+          onRefresh={refresh}
+        />
+      )}
 
-          {!data ? (
-            <motion.div
-              className="loading-state"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            >
-              ⚽
-            </motion.div>
-          ) : (
-            <Bracket matches={data.matches} />
-          )}
+      {!data ? (
+        <motion.div
+          className="loading-state"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        >
+          ⚽
+        </motion.div>
+      ) : (
+        <RoadToFinal matches={data.matches} />
+      )}
 
-          <footer className="app-footer">
-            Data via football-data.org (or TheSportsDB as backup), falling back to a bundled snapshot of the real bracket.
-          </footer>
-        </div>
-      </div>
+      <footer className="app-footer">
+        Data via football-data.org (or TheSportsDB as backup), with a fun demo bracket as a last resort.
+      </footer>
     </div>
   );
 }

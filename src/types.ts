@@ -7,9 +7,6 @@ export interface Match {
   awayTeam: string;
   homeScore: number | null;
   awayScore: number | null;
-  // Penalty-shootout scores, when a knockout tie was level after extra time.
-  homePens?: number | null;
-  awayPens?: number | null;
   date: string | null;
   venue: string | null;
 }

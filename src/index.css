@@ -1,33 +1,17 @@
 :root {
-  --poster: #0d0d10;
-  --poster-2: #17171c;
-  --tile: #202027;
-  --tile-2: #2a2a32;
-  --tbd: #3a3a44;
-  --win: #e9c65a;
-  --win-bg: rgba(233, 198, 90, 0.16);
-  --gold: #f2c14e;
-  --ink: #f4f4f6;
-  --muted: #9a9aa6;
-  --line: #3a3a44;
-  --shadow: rgba(0, 0, 0, 0.45) 0 10px 30px -8px;
+  --pitch-dark: #04331f;
+  --pitch: #0b6e4f;
+  --pitch-light: #12a26b;
+  --gold: #ffd700;
+  --ink: #0b1220;
+  --paper: #f7fbf8;
+  --card: #ffffff;
+  --muted: #5c6b66;
+  --shadow: rgba(4, 51, 31, 0.18) 0 10px 30px -8px;
 
-  /* The signature FIFA 26 rainbow used on the poster frame. */
-  --rainbow: linear-gradient(
-    90deg,
-    #e4322b 0%,
-    #f0821e 16%,
-    #f6c531 32%,
-    #45b64a 48%,
-    #2e77d0 64%,
-    #6a3fb5 82%,
-    #b0379b 100%
-  );
+  --sans: "Segoe UI", system-ui, Roboto, sans-serif;
 
-  --sans: "Helvetica Neue", Arial, system-ui, Roboto, sans-serif;
-  --display: "Arial Narrow", "Helvetica Neue", Impact, system-ui, sans-serif;
-
-  color-scheme: dark;
+  color-scheme: light;
   font: 16px/1.5 var(--sans);
   color: var(--ink);
   font-synthesis: none;
@@ -43,11 +27,14 @@
 body {
   margin: 0;
   min-height: 100svh;
-  background: #050506;
+  background:
+    radial-gradient(circle at 20% -10%, rgba(255, 215, 0, 0.12), transparent 45%),
+    linear-gradient(180deg, var(--pitch-dark) 0%, var(--pitch) 45%, var(--paper) 45%, var(--paper) 100%);
+  background-attachment: fixed;
 }
 
 h1, h2 {
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
 }
 

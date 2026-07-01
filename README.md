@@ -11,15 +11,13 @@ the Final — built with React, TypeScript, Vite, and Framer Motion.
   published as a static JSON file the app reads. Fetching happens server-side
   on purpose: football-data.org doesn't allow direct browser calls (no CORS),
   and a static site has nowhere safe to hide an API key from the browser anyway.
-- Falls back to a bundled snapshot of the real knockout bracket (see
-  `src/data/fallbackBracket.ts`) if no live source responds, so the app always
-  shows the actual matchups. The status badge always says plainly which one
-  you're looking at, with a "Why offline data?" toggle showing the actual error
-  from each source.
-- Symmetric knockout bracket of flag tiles fanning out to a central champion,
-  with winner highlights and a confetti celebration when a champion is crowned.
-  Tap any match for its round, score, kickoff date and venue.
-- Live/offline status badge with a manual refresh button, and auto-refresh every 60s.
+- Falls back to a colorful demo bracket automatically if no live source
+  responds, so the app always has something fun to show. The status badge
+  always says plainly which one you're looking at, with a "Why demo data?"
+  toggle showing the actual error from each source.
+- Animated "road" timeline connecting each round, with country flags, winner
+  badges, and a confetti celebration when a champion is crowned.
+- Live/Demo status badge with a manual refresh button, and auto-refresh every 60s.
 - Installable as a Progressive Web App — add it to your phone's home screen
   for a full-screen, app-like experience with an offline-capable service worker.
 

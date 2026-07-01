@@ -17,15 +17,6 @@ function normalizeRound(raw) {
   return null;
 }
 
-// Map each provider's raw rows into our Match shape, dropping anything that
-// isn't a recognizable knockout round. Throws a source-specific diagnostic when
-// nothing usable is found, so the frontend's "Why demo data?" can explain why.
-function collectKnockoutMatches(rawRows, mapRow, describeEmpty) {
-  const matches = rawRows.map(mapRow).filter(Boolean);
-  if (matches.length === 0) throw new Error(describeEmpty(rawRows));
-  return matches;
-}
-
 async function fetchFootballData() {
   const apiKey = process.env.FOOTBALL_DATA_API_KEY;
   if (!apiKey) throw new Error("FOOTBALL_DATA_API_KEY is not set");
@@ -37,9 +28,8 @@ async function fetchFootballData() {
 
   const data = await res.json();
   const rawMatches = Array.isArray(data?.matches) ? data.matches : [];
-  return collectKnockoutMatches(
-    rawMatches,
-    (m) => {
+  const matches = rawMatches
+    .map((m) => {
       const round = normalizeRound(m.stage);
       if (!round) return null;
       return {
@@ -52,12 +42,14 @@ async function fetchFootballData() {
         date: m.utcDate ?? null,
         venue: m.venue ?? null,
       };
-    },
-    (rows) => {
-      const stages = [...new Set(rows.map((m) => m.stage))];
-      return `No knockout-stage matches yet. Raw stages seen: ${stages.join(", ") || "none"}`;
-    },
-  );
+    })
+    .filter(Boolean);
+
+  if (matches.length === 0) {
+    const stages = [...new Set(rawMatches.map((m) => m.stage))];
+    throw new Error(`No knockout-stage matches yet. Raw stages seen: ${stages.join(", ") || "none"}`);
+  }
+  return matches;
 }
 
 async function fetchTheSportsDb() {
@@ -66,9 +58,8 @@ async function fetchTheSportsDb() {
 
   const data = await res.json();
   const events = Array.isArray(data?.events) ? data.events : [];
-  return collectKnockoutMatches(
-    events,
-    (e) => {
+  const matches = events
+    .map((e) => {
       const round = normalizeRound(e.strRound);
       if (!round) return null;
       return {
@@ -81,12 +72,16 @@ async function fetchTheSportsDb() {
         date: e.dateEvent ?? null,
         venue: e.strVenue ?? null,
       };
-    },
-    (rows) => {
-      const rounds = [...new Set(rows.map((e) => e.strRound))];
-      return `No knockout-stage matches yet (${rows.length} total events). Raw rounds seen: ${rounds.join(", ") || "none"}`;
-    },
-  );
+    })
+    .filter(Boolean);
+
+  if (matches.length === 0) {
+    const rounds = [...new Set(events.map((e) => e.strRound))];
+    throw new Error(
+      `No knockout-stage matches yet (${events.length} total events). Raw rounds seen: ${rounds.join(", ") || "none"}`,
+    );
+  }
+  return matches;
 }
 
 const SOURCES = [
@@ -113,7 +108,7 @@ async function main() {
 
   if (!result) {
     result = { source: "demo", sourceName: null, fetchedAt: new Date().toISOString(), matches: [], errors };
-    console.log("No live source available; frontend will fall back to its bundled snapshot bracket.");
+    console.log("No live source available; frontend will fall back to its bundled demo bracket.");
   }
 
   const outDir = path.join(process.cwd(), "public", "data");
