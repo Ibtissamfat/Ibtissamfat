@@ -31,6 +31,79 @@ function mapGoals(goals, homeTeamName) {
   return mapped.length > 0 ? mapped : undefined;
 }
 
+// Normalize a team name for cross-source matching (drop accents/punctuation).
+function normName(s) {
+  return (s ?? "").toLowerCase().normalize("NFD").replace(/[^a-z]/g, "");
+}
+
+// Parse TheSportsDB goal-detail strings like "23':Rodrygo;52'+2:Raphinha" into
+// our Goal shape. Values can contain HTML, so strip tags first.
+function parseGoalDetails(details, team) {
+  if (!details || typeof details !== "string") return [];
+  return details
+    .split(";")
+    .map((entry) => {
+      const clean = entry.replace(/<[^>]*>/g, "").trim();
+      const idx = clean.indexOf(":");
+      if (idx === -1) return null;
+      const scorer = clean.slice(idx + 1).trim();
+      if (!scorer) return null;
+      const min = clean.slice(0, idx).match(/\d+/);
+      return { team, scorer, minute: min ? Number(min[0]) : null };
+    })
+    .filter(Boolean);
+}
+
+function goalsFromEvent(e, homeTeamName) {
+  const homeIsHome = normName(e.strHomeTeam) === normName(homeTeamName);
+  const goals = [
+    ...parseGoalDetails(e.strHomeGoalDetails, homeIsHome ? "home" : "away"),
+    ...parseGoalDetails(e.strAwayGoalDetails, homeIsHome ? "away" : "home"),
+  ].sort((a, b) => (a.minute ?? 0) - (b.minute ?? 0));
+  return goals.length > 0 ? goals : undefined;
+}
+
+async function fetchSportsDbEvents() {
+  const res = await fetch("https://www.thesportsdb.com/api/v1/json/3/eventsseason.php?id=4429&s=2026");
+  if (!res.ok) throw new Error(`TheSportsDB responded with ${res.status}`);
+  const data = await res.json();
+  return Array.isArray(data?.events) ? data.events : [];
+}
+
+// Best-effort: fill in venue and scorer detail from TheSportsDB for matches that
+// football-data.org returned without them. Never throws — the live scores stand
+// on their own if this secondary source is unavailable.
+async function enrichWithSportsDb(matches) {
+  try {
+    const events = await fetchSportsDbEvents();
+    if (events.length === 0) return;
+    const byPair = new Map();
+    for (const e of events) {
+      byPair.set([normName(e.strHomeTeam), normName(e.strAwayTeam)].sort().join("|"), e);
+    }
+    let venues = 0;
+    let scorers = 0;
+    for (const m of matches) {
+      const e = byPair.get([normName(m.homeTeam), normName(m.awayTeam)].sort().join("|"));
+      if (!e) continue;
+      if (!m.venue && e.strVenue) {
+        m.venue = e.strVenue;
+        venues += 1;
+      }
+      if (!m.goals || m.goals.length === 0) {
+        const goals = goalsFromEvent(e, m.homeTeam);
+        if (goals) {
+          m.goals = goals;
+          scorers += 1;
+        }
+      }
+    }
+    console.log(`TheSportsDB enrichment: +${venues} venues, +${scorers} scorer lists`);
+  } catch (err) {
+    console.error(`TheSportsDB enrichment skipped: ${err instanceof Error ? err.message : String(err)}`);
+  }
+}
+
 async function fetchFootballData() {
   const apiKey = process.env.FOOTBALL_DATA_API_KEY;
   if (!apiKey) throw new Error("FOOTBALL_DATA_API_KEY is not set");
@@ -69,11 +142,7 @@ async function fetchFootballData() {
 }
 
 async function fetchTheSportsDb() {
-  const res = await fetch("https://www.thesportsdb.com/api/v1/json/3/eventsseason.php?id=4429&s=2026");
-  if (!res.ok) throw new Error(`TheSportsDB responded with ${res.status}`);
-
-  const data = await res.json();
-  const events = Array.isArray(data?.events) ? data.events : [];
+  const events = await fetchSportsDbEvents();
   const matches = events
     .map((e) => {
       const round = normalizeRound(e.strRound);
@@ -87,6 +156,7 @@ async function fetchTheSportsDb() {
         awayScore: e.intAwayScore !== null && e.intAwayScore !== "" ? Number(e.intAwayScore) : null,
         date: e.dateEvent ?? null,
         venue: e.strVenue ?? null,
+        goals: goalsFromEvent(e, e.strHomeTeam),
       };
     })
     .filter(Boolean);
@@ -114,6 +184,11 @@ async function main() {
       const matches = await source.fetch();
       result = { source: "live", sourceName: source.name, fetchedAt: new Date().toISOString(), matches, errors };
       console.log(`Loaded ${matches.length} matches from ${source.name}`);
+      // football-data.org's free tier omits venues and scorers; try to fill them
+      // in from TheSportsDB without risking the live scores we already have.
+      if (source.name === "football-data.org") {
+        await enrichWithSportsDb(matches);
+      }
       break;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);

@@ -100,7 +100,14 @@ function Goals({ match }: { match: Match }) {
   const goals = match.goals ?? [];
 
   if (goals.length === 0) {
-    return <p className="details__nogoals">⚽ Goalless — no scorers on record.</p>;
+    const scored = (match.homeScore ?? 0) + (match.awayScore ?? 0) > 0;
+    return (
+      <p className="details__nogoals">
+        {scored
+          ? "⚽ Scorer details aren’t available for this match yet."
+          : "⚽ Goalless draw — no goals scored."}
+      </p>
+    );
   }
 
   return (
