@@ -6,6 +6,11 @@ on:
       - main
       - claude/world-cup-finale-app-93ah0d
   workflow_dispatch:
+  schedule:
+    # Refresh knockout results periodically. Only fires once this workflow
+    # file lives on the repo's default branch - GitHub ignores schedule
+    # triggers defined on other branches.
+    - cron: "*/30 * * * *"
 
 permissions:
   contents: read
@@ -26,10 +31,12 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - run: npm run fetch:data
+        env:
+          FOOTBALL_DATA_API_KEY: ${{ secrets.FOOTBALL_DATA_API_KEY }}
       - run: npm run build
         env:
           GH_PAGES: "true"
-          VITE_FOOTBALL_DATA_API_KEY: ${{ secrets.FOOTBALL_DATA_API_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
