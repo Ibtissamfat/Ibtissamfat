@@ -1,17 +1,10 @@
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches:
-      - main
-      - claude/world-cup-finale-app-93ah0d
+  # Automatic deployment is DISABLED. Nothing deploys on push or on a schedule
+  # any more; the workflow is left in place only so it can be run manually from
+  # the Actions tab (workflow_dispatch) if deployment is ever resumed.
   workflow_dispatch:
-  schedule:
-    # Refresh knockout results periodically. Only fires once this workflow
-    # file lives on the repo's default branch - GitHub ignores schedule
-    # triggers defined on other branches. 5 min is about the fastest GitHub
-    # honours for scheduled runs (and they can still be delayed under load).
-    - cron: "*/5 * * * *"
 
 permissions:
   contents: read
